@@ -1,0 +1,87 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Workspace {
+  id               String   @id @default(uuid())
+  teamId           String   @unique
+  defaultChannelId String
+  timezone         String   @default("Asia/Kolkata")
+  cron             String   @default("30 9 * * *")
+  summaryEnabled   Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  members  Member[]
+  standups Standup[]
+
+  @@index([teamId])
+}
+
+model Member {
+  id          String   @id @default(uuid())
+  workspaceId String
+  userId      String
+  optedIn     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  entries   Entry[]
+
+  @@unique([workspaceId, userId])
+  @@index([workspaceId])
+  @@index([userId])
+}
+
+model Standup {
+  id          String    @id @default(uuid())
+  workspaceId String
+  date        String
+  startedAt   DateTime
+  compiledAt  DateTime?
+  channelId   String
+  messageTs   String?
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  entries   Entry[]
+
+  @@unique([workspaceId, date])
+  @@index([workspaceId])
+  @@index([date])
+}
+
+model Entry {
+  id          String    @id @default(uuid())
+  standupId   String
+  userId      String
+  yesterday   String
+  today       String
+  blockers    String?
+  submittedAt DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  standup Standup @relation(fields: [standupId], references: [id], onDelete: Cascade)
+  member  Member  @relation(fields: [userId], references: [userId])
+
+  @@unique([standupId, userId])
+  @@index([standupId])
+  @@index([userId])
+}
+
+model JobLock {
+  key       String   @id
+  heldBy    String
+  expiresAt DateTime
+
+  @@index([expiresAt])
+}
+
