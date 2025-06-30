@@ -1,0 +1,115 @@
+import { AllMiddlewareArgs, SlackViewMiddlewareArgs } from '@slack/bolt';
+import { WebClient } from '@slack/web-api';
+import { logger } from '../utils/logger.js';
+import { prisma } from '../db/prismaClient.js';
+import { buildCron, validateTimezone } from '../utils/date.js';
+import { scheduleWorkspaceJob, cancelWorkspaceJob } from '../services/scheduler.js';
+import { SummarizerProvider } from '../services/summarizer/provider.js';
+
+export function createSetupConfigHandler(
+  client: WebClient,
+  summarizer: SummarizerProvider | null,
+  collectionWindowMin: number
+) {
+  return async function handleSetupConfig({
+    ack,
+    view,
+    body,
+  }: SlackViewMiddlewareArgs<'view_submission'> & AllMiddlewareArgs): Promise<void> {
+    try {
+      const values = view.state.values;
+
+      const channelId = values.channel_block.channel_select.selected_channel as string;
+      const timeInput = values.time_block.time_input.value as string;
+      const timezone = values.timezone_block.timezone_input.value as string;
+      const summaryEnabled =
+        (values.summary_block.summary_checkbox.selected_options?.length ?? 0) > 0;
+
+      // Validate time format
+      const timeMatch = timeInput.match(/^(\d{1,2}):(\d{2})$/);
+      if (!timeMatch) {
+        await ack({
+          response_action: 'errors',
+          errors: {
+            time_block: 'Invalid time format. Use HH:MM (e.g., 09:30)',
+          },
+        });
+        return;
+      }
+
+      const hour = parseInt(timeMatch[1], 10);
+      const minute = parseInt(timeMatch[2], 10);
+
+      if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
+        await ack({
+          response_action: 'errors',
+          errors: {
+            time_block: 'Invalid time. Hour must be 0-23, minute must be 0-59',
+          },
+        });
+        return;
+      }
+
+      // Validate timezone
+      if (!validateTimezone(timezone)) {
+        await ack({
+          response_action: 'errors',
+          errors: {
+            timezone_block: 'Invalid timezone. Use IANA timezone format (e.g., Asia/Kolkata)',
+          },
+        });
+        return;
+      }
+
+      await ack();
+
+      const teamId = body.team?.id || body.user.team_id;
+      const cron = buildCron(hour, minute);
+
+      // Upsert workspace configuration
+      const workspace = await prisma.workspace.upsert({
+        where: { teamId },
+        create: {
+          teamId,
+          defaultChannelId: channelId,
+          timezone,
+          cron,
+          summaryEnabled,
+        },
+        update: {
+          defaultChannelId: channelId,
+          timezone,
+          cron,
+          summaryEnabled,
+        },
+      });
+
+      // Reschedule the job
+      await cancelWorkspaceJob(workspace.id);
+      await scheduleWorkspaceJob(workspace.id, client, summarizer, collectionWindowMin);
+
+      // Send confirmation message
+      await client.chat.postMessage({
+        channel: channelId,
+        text: `✅ Stand-up bot configured successfully!\n\n` +
+          `Stand-ups will be collected at *${timeInput}* (${timezone}) and posted here.\n` +
+          `AI Summary: ${summaryEnabled ? 'Enabled' : 'Disabled'}\n\n` +
+          `Use \`/standup optin\` to participate and \`/standup status\` to view details.`,
+      });
+
+      logger.info(
+        { workspaceId: workspace.id, teamId, channelId, cron, timezone },
+        'Workspace configured'
+      );
+    } catch (error) {
+      logger.error({ error, view }, 'Failed to handle setup config');
+      await ack({
+        response_action: 'errors',
+        errors: {
+          channel_block: 'Failed to save configuration. Please try again.',
+        },
+      });
+    }
+  };
+}
+
