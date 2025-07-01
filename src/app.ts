@@ -1,4 +1,4 @@
-import { App } from '@slack/bolt';
+import { App, LogLevel } from '@slack/bolt';
 import { WebClient } from '@slack/web-api';
 import { Config } from './config.js';
 import { logger } from './utils/logger.js';
@@ -30,7 +30,7 @@ export function createApp(config: Config): App {
     appToken: config.slackAppToken,
     socketMode: true,
     signingSecret: config.slackSigningSecret,
-    logLevel: config.logLevel === 'debug' ? 'DEBUG' : 'INFO',
+    logLevel: config.logLevel === 'debug' ? LogLevel.DEBUG : LogLevel.INFO,
   });
 
   const client = new WebClient(config.slackBotToken);

@@ -15,7 +15,7 @@ export function createSetupConfigHandler(
     ack,
     view,
     body,
-  }: SlackViewMiddlewareArgs<'view_submission'> & AllMiddlewareArgs): Promise<void> {
+  }: SlackViewMiddlewareArgs & AllMiddlewareArgs): Promise<void> {
     try {
       const values = view.state.values;
 
@@ -63,7 +63,13 @@ export function createSetupConfigHandler(
 
       await ack();
 
-      const teamId = body.team?.id || body.user.team_id;
+      const teamId = ('team' in body ? body.team?.id : undefined) || ('user' in body ? body.user.team_id : '');
+      
+      if (!teamId) {
+        logger.error({ body }, 'Unable to determine teamId');
+        return;
+      }
+
       const cron = buildCron(hour, minute);
 
       // Upsert workspace configuration

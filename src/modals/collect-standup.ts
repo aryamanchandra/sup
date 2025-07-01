@@ -62,7 +62,7 @@ export async function handleStandupSubmission({
   view,
   body,
   client,
-}: SlackViewMiddlewareArgs<'view_submission'> & AllMiddlewareArgs): Promise<void> {
+}: SlackViewMiddlewareArgs & AllMiddlewareArgs): Promise<void> {
   try {
     await ack();
 

@@ -62,7 +62,8 @@ export async function postMessage(
   return retryWithBackoff(async () => {
     return await client.chat.postMessage({
       channel: channelId,
-      blocks,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      blocks: blocks as any,
       text: text || 'Stand-up update',
     });
   });
@@ -79,7 +80,8 @@ export async function postThreadReply(
     return await client.chat.postMessage({
       channel: channelId,
       thread_ts: threadTs,
-      blocks,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      blocks: blocks as any,
       text: text || 'Thread reply',
     });
   });
@@ -89,7 +91,8 @@ export async function openModal(client: WebClient, triggerId: string, view: unkn
   return retryWithBackoff(async () => {
     return await client.views.open({
       trigger_id: triggerId,
-      view: view as Parameters<typeof client.views.open>[0]['view'],
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      view: view as any,
     });
   });
 }
