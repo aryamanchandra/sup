@@ -1,0 +1,81 @@
+display_information:
+  name: Stand-up Bot
+  description: Daily stand-up collection, compilation, and AI summaries for your team
+  background_color: '#2c3e50'
+  long_description: |-
+    Stand-up Bot automates your team's daily stand-ups by:
+    - Collecting updates via DM at scheduled times
+    - Compiling and posting to your chosen channel
+    - Generating AI-powered summaries (optional)
+    - Supporting timezone-aware scheduling
+    - Allowing user opt-in/opt-out
+
+features:
+  bot_user:
+    display_name: Stand-up Bot
+    always_online: true
+  slash_commands:
+    - command: /standup
+      url: https://your-app-url.com/slack/events
+      description: Show help and available commands
+      usage_hint: '[init|today|summary|config|optin|optout|status]'
+      should_escape: false
+    - command: /standup-init
+      url: https://your-app-url.com/slack/events
+      description: Initialize stand-up configuration
+      usage_hint: ''
+      should_escape: false
+    - command: /standup-today
+      url: https://your-app-url.com/slack/events
+      description: Run stand-up collection now
+      usage_hint: ''
+      should_escape: false
+    - command: /standup-summary
+      url: https://your-app-url.com/slack/events
+      description: Generate AI summary of today's stand-up
+      usage_hint: ''
+      should_escape: false
+    - command: /standup-config
+      url: https://your-app-url.com/slack/events
+      description: Update stand-up configuration
+      usage_hint: ''
+      should_escape: false
+    - command: /standup-optin
+      url: https://your-app-url.com/slack/events
+      description: Opt in to daily stand-ups
+      usage_hint: ''
+      should_escape: false
+    - command: /standup-optout
+      url: https://your-app-url.com/slack/events
+      description: Opt out of daily stand-ups
+      usage_hint: ''
+      should_escape: false
+    - command: /standup-status
+      url: https://your-app-url.com/slack/events
+      description: View current stand-up configuration
+      usage_hint: ''
+      should_escape: false
+
+oauth_config:
+  scopes:
+    bot:
+      - app_mentions:read
+      - channels:history
+      - channels:read
+      - chat:write
+      - commands
+      - groups:read
+      - im:history
+      - im:write
+      - users:read
+
+settings:
+  event_subscriptions:
+    bot_events:
+      - app_mention
+  interactivity:
+    is_enabled: true
+  org_deploy_enabled: false
+  socket_mode_enabled: true
+  token_rotation_enabled: false
+
