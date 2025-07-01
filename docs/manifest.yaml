@@ -16,45 +16,22 @@ features:
     always_online: true
   slash_commands:
     - command: /standup
-      url: https://your-app-url.com/slack/events
       description: Show help and available commands
       usage_hint: '[init|today|summary|config|optin|optout|status]'
-      should_escape: false
     - command: /standup-init
-      url: https://your-app-url.com/slack/events
       description: Initialize stand-up configuration
-      usage_hint: ''
-      should_escape: false
     - command: /standup-today
-      url: https://your-app-url.com/slack/events
       description: Run stand-up collection now
-      usage_hint: ''
-      should_escape: false
     - command: /standup-summary
-      url: https://your-app-url.com/slack/events
       description: Generate AI summary of today's stand-up
-      usage_hint: ''
-      should_escape: false
     - command: /standup-config
-      url: https://your-app-url.com/slack/events
       description: Update stand-up configuration
-      usage_hint: ''
-      should_escape: false
     - command: /standup-optin
-      url: https://your-app-url.com/slack/events
       description: Opt in to daily stand-ups
-      usage_hint: ''
-      should_escape: false
     - command: /standup-optout
-      url: https://your-app-url.com/slack/events
       description: Opt out of daily stand-ups
-      usage_hint: ''
-      should_escape: false
     - command: /standup-status
-      url: https://your-app-url.com/slack/events
       description: View current stand-up configuration
-      usage_hint: ''
-      should_escape: false
 
 oauth_config:
   scopes:
@@ -78,4 +55,3 @@ settings:
   org_deploy_enabled: false
   socket_mode_enabled: true
   token_rotation_enabled: false
-
