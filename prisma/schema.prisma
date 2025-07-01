@@ -35,7 +35,6 @@ model Member {
   updatedAt   DateTime @updatedAt
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  entries   Entry[]
 
   @@unique([workspaceId, userId])
   @@index([workspaceId])
@@ -70,7 +69,6 @@ model Entry {
   updatedAt   DateTime  @updatedAt
 
   standup Standup @relation(fields: [standupId], references: [id], onDelete: Cascade)
-  member  Member  @relation(fields: [userId], references: [userId])
 
   @@unique([standupId, userId])
   @@index([standupId])
