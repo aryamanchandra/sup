@@ -161,16 +161,9 @@ export async function regenerateSummary(
       throw new Error('No entries found for summary');
     }
 
-    await generateAndPostSummary(
-      client,
-      standup.channelId,
-      standup.messageTs,
-      entries,
-      summarizer
-    );
+    await generateAndPostSummary(client, standup.channelId, standup.messageTs, entries, summarizer);
   } catch (error) {
     logger.error({ error, workspaceId, date }, 'Failed to regenerate summary');
     throw error;
   }
 }
-

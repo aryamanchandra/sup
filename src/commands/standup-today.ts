@@ -44,14 +44,19 @@ export function createStandupTodayHandler(
       await collectFromUsers(client, workspace.id, standupId);
 
       // Schedule compilation after a short delay
-      setTimeout(async () => {
-        try {
-          await compileStandup(client, standupId, summarizer);
-          logger.info({ standupId }, 'Ad-hoc stand-up compiled');
-        } catch (error) {
-          logger.error({ error, standupId }, 'Failed to compile ad-hoc stand-up');
-        }
-      }, collectionWindowMin * 60 * 1000);
+      setTimeout(
+        () => {
+          void (async () => {
+            try {
+              await compileStandup(client, standupId, summarizer);
+              logger.info({ standupId }, 'Ad-hoc stand-up compiled');
+            } catch (error) {
+              logger.error({ error, standupId }, 'Failed to compile ad-hoc stand-up');
+            }
+          })();
+        },
+        collectionWindowMin * 60 * 1000
+      );
 
       await respond({
         text: `✅ Stand-up collection started! Messages sent to opted-in members. Compilation scheduled in ${collectionWindowMin} minutes.`,
@@ -68,4 +73,3 @@ export function createStandupTodayHandler(
     }
   };
 }
-

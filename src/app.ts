@@ -37,9 +37,8 @@ export function createApp(config: Config): App {
   const summarizer = createSummarizer(config.openAiApiKey);
 
   // Middleware for logging
-  app.use(async ({ next, context }) => {
+  app.use(async ({ next }) => {
     const requestId = `req-${Date.now()}-${Math.random().toString(36).substring(7)}`;
-    context.requestId = requestId;
     logger.debug({ requestId }, 'Incoming request');
     await next();
   });
@@ -76,10 +75,7 @@ export function createApp(config: Config): App {
   });
 
   app.command('/standup-init', handleStandupInit);
-  app.command(
-    '/standup-today',
-    createStandupTodayHandler(summarizer, config.collectionWindowMin)
-  );
+  app.command('/standup-today', createStandupTodayHandler(summarizer, config.collectionWindowMin));
   app.command('/standup-summary', createStandupSummaryHandler(summarizer));
   app.command('/standup-config', handleStandupConfig);
   app.command('/standup-optin', handleStandupOptIn);
@@ -107,4 +103,3 @@ export function createApp(config: Config): App {
 
   return app;
 }
-

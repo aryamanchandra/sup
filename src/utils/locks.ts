@@ -89,4 +89,3 @@ export async function extendLock(key: string, heldBy: string): Promise<boolean> 
     return false;
   }
 }
-

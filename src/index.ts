@@ -33,7 +33,7 @@ async function main() {
       logger: false, // We use pino directly
     });
 
-    await registerHealthRoutes(fastify);
+    registerHealthRoutes(fastify);
 
     await fastify.listen({ port: config.port, host: '0.0.0.0' });
     logger.info({ port: config.port }, 'HTTP server listening');
@@ -57,7 +57,7 @@ async function main() {
       logger.info({ signal }, 'Shutdown signal received');
 
       try {
-        await stopAllJobs();
+        stopAllJobs();
         await app.stop();
         await fastify.close();
         await disconnectDatabase();
@@ -69,13 +69,12 @@ async function main() {
       }
     };
 
-    process.on('SIGTERM', () => shutdown('SIGTERM'));
-    process.on('SIGINT', () => shutdown('SIGINT'));
+    process.on('SIGTERM', () => void shutdown('SIGTERM'));
+    process.on('SIGINT', () => void shutdown('SIGINT'));
   } catch (error) {
     logger.error({ error }, 'Failed to start application');
     process.exit(1);
   }
 }
 
-main();
-
+void main();

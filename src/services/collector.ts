@@ -54,9 +54,7 @@ export async function collectFromUsers(
   specificUserId?: string
 ): Promise<void> {
   try {
-    const userIds = specificUserId
-      ? [specificUserId]
-      : await getOptedInUsers(workspaceId);
+    const userIds = specificUserId ? [specificUserId] : await getOptedInUsers(workspaceId);
 
     logger.info({ workspaceId, standupId, userCount: userIds.length }, 'Starting collection');
 
@@ -174,4 +172,3 @@ export async function getStandupEntries(standupId: string) {
     throw error;
   }
 }
-

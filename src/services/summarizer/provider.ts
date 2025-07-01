@@ -5,6 +5,7 @@ export interface SummaryResult {
 }
 
 export interface SummarizerProvider {
-  generateSummary(entries: Array<{ userId: string; yesterday: string; today: string; blockers?: string }>): Promise<SummaryResult>;
+  generateSummary(
+    entries: Array<{ userId: string; yesterday: string; today: string; blockers?: string }>
+  ): Promise<SummaryResult>;
 }
-

@@ -50,8 +50,7 @@ Keep it concise and under 2000 characters total.`;
         messages: [
           {
             role: 'system',
-            content:
-              'You are a helpful assistant that summarizes team stand-ups concisely.',
+            content: 'You are a helpful assistant that summarizes team stand-ups concisely.',
           },
           {
             role: 'user',
@@ -91,4 +90,3 @@ export function createSummarizer(apiKey?: string): SummarizerProvider | null {
 
   return new OpenAISummarizer(apiKey);
 }
-

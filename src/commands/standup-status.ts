@@ -36,7 +36,8 @@ export async function handleStandupStatus({
       : 'Not scheduled';
 
     await respond({
-      text: `📊 *Stand-up Status*\n\n` +
+      text:
+        `📊 *Stand-up Status*\n\n` +
         `*Channel:* <#${workspace.defaultChannelId}>\n` +
         `*Timezone:* ${workspace.timezone}\n` +
         `*Next Run:* ${nextRunText}\n` +
@@ -54,4 +55,3 @@ export async function handleStandupStatus({
     });
   }
 }
-

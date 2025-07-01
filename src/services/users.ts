@@ -50,10 +50,7 @@ export async function getOptedInUsers(workspaceId: string): Promise<string[]> {
   }
 }
 
-export async function getUserOptInStatus(
-  workspaceId: string,
-  userId: string
-): Promise<boolean> {
+export async function getUserOptInStatus(workspaceId: string, userId: string): Promise<boolean> {
   try {
     const member = await prisma.member.findUnique({
       where: {
@@ -71,10 +68,7 @@ export async function getUserOptInStatus(
   }
 }
 
-export async function ensureMembersExist(
-  workspaceId: string,
-  userIds: string[]
-): Promise<void> {
+export async function ensureMembersExist(workspaceId: string, userIds: string[]): Promise<void> {
   try {
     const existingMembers = await prisma.member.findMany({
       where: {
@@ -107,4 +101,3 @@ export async function ensureMembersExist(
     throw error;
   }
 }
-

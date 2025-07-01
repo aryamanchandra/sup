@@ -42,7 +42,7 @@ export async function scheduleWorkspaceJob(
 ): Promise<void> {
   try {
     // Cancel existing job if any
-    await cancelWorkspaceJob(workspaceId);
+    cancelWorkspaceJob(workspaceId);
 
     const workspace = await prisma.workspace.findUnique({
       where: { id: workspaceId },
@@ -58,30 +58,32 @@ export async function scheduleWorkspaceJob(
     // Schedule collection job
     const collectionTask = cron.schedule(
       workspace.cron,
-      async () => {
-        const acquired = await acquireLock(lockKey, INSTANCE_ID);
-        if (!acquired) {
-          logger.debug({ workspaceId }, 'Another instance is handling this job');
-          return;
-        }
+      () => {
+        void (async () => {
+          const acquired = await acquireLock(lockKey, INSTANCE_ID);
+          if (!acquired) {
+            logger.debug({ workspaceId }, 'Another instance is handling this job');
+            return;
+          }
 
-        try {
-          logger.info({ workspaceId, cron: workspace.cron }, 'Starting scheduled stand-up');
+          try {
+            logger.info({ workspaceId, cron: workspace.cron }, 'Starting scheduled stand-up');
 
-          const standupId = await createStandup(
-            workspaceId,
-            workspace.defaultChannelId,
-            workspace.timezone
-          );
+            const standupId = await createStandup(
+              workspaceId,
+              workspace.defaultChannelId,
+              workspace.timezone
+            );
 
-          await collectFromUsers(client, workspaceId, standupId);
+            await collectFromUsers(client, workspaceId, standupId);
 
-          logger.info({ workspaceId, standupId }, 'Collection started');
-        } catch (error) {
-          logger.error({ error, workspaceId }, 'Failed to execute scheduled job');
-        } finally {
-          await releaseLock(lockKey, INSTANCE_ID);
-        }
+            logger.info({ workspaceId, standupId }, 'Collection started');
+          } catch (error) {
+            logger.error({ error, workspaceId }, 'Failed to execute scheduled job');
+          } finally {
+            await releaseLock(lockKey, INSTANCE_ID);
+          }
+        })();
       },
       {
         timezone: workspace.timezone,
@@ -110,38 +112,40 @@ export async function scheduleWorkspaceJob(
     // Schedule compilation job
     const compileTask = cron.schedule(
       compileCron,
-      async () => {
-        const acquired = await acquireLock(`${lockKey}-compile`, INSTANCE_ID);
-        if (!acquired) {
-          logger.debug({ workspaceId }, 'Another instance is handling compilation');
-          return;
-        }
-
-        try {
-          logger.info({ workspaceId }, 'Starting scheduled compilation');
-
-          // Find today's standup
-          const standup = await prisma.standup.findFirst({
-            where: {
-              workspaceId,
-              compiledAt: null,
-            },
-            orderBy: {
-              startedAt: 'desc',
-            },
-          });
-
-          if (standup) {
-            await compileStandup(client, standup.id, summarizer);
-            logger.info({ workspaceId, standupId: standup.id }, 'Compilation completed');
-          } else {
-            logger.warn({ workspaceId }, 'No standup found to compile');
+      () => {
+        void (async () => {
+          const acquired = await acquireLock(`${lockKey}-compile`, INSTANCE_ID);
+          if (!acquired) {
+            logger.debug({ workspaceId }, 'Another instance is handling compilation');
+            return;
           }
-        } catch (error) {
-          logger.error({ error, workspaceId }, 'Failed to execute compilation job');
-        } finally {
-          await releaseLock(`${lockKey}-compile`, INSTANCE_ID);
-        }
+
+          try {
+            logger.info({ workspaceId }, 'Starting scheduled compilation');
+
+            // Find today's standup
+            const standup = await prisma.standup.findFirst({
+              where: {
+                workspaceId,
+                compiledAt: null,
+              },
+              orderBy: {
+                startedAt: 'desc',
+              },
+            });
+
+            if (standup) {
+              await compileStandup(client, standup.id, summarizer);
+              logger.info({ workspaceId, standupId: standup.id }, 'Compilation completed');
+            } else {
+              logger.warn({ workspaceId }, 'No standup found to compile');
+            }
+          } catch (error) {
+            logger.error({ error, workspaceId }, 'Failed to execute compilation job');
+          } finally {
+            await releaseLock(`${lockKey}-compile`, INSTANCE_ID);
+          }
+        })();
       },
       {
         timezone: workspace.timezone,
@@ -160,7 +164,7 @@ export async function scheduleWorkspaceJob(
   }
 }
 
-export async function cancelWorkspaceJob(workspaceId: string): Promise<void> {
+export function cancelWorkspaceJob(workspaceId: string): void {
   const job = jobs.get(workspaceId);
   if (job) {
     job.task.stop();
@@ -174,7 +178,7 @@ export function getScheduledJobsCount(): number {
   return jobs.size;
 }
 
-export async function stopAllJobs(): Promise<void> {
+export function stopAllJobs(): void {
   for (const [workspaceId, job] of jobs.entries()) {
     job.task.stop();
     job.compileTask.stop();
@@ -183,4 +187,3 @@ export async function stopAllJobs(): Promise<void> {
   jobs.clear();
   logger.info('All jobs stopped');
 }
-

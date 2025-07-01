@@ -35,4 +35,3 @@ export function loadConfig(): Config {
 
   return config;
 }
-

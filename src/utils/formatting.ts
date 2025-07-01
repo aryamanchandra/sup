@@ -96,9 +96,7 @@ export function buildCompleteStandupBlocks(
   entries: StandupEntry[],
   missedUserIds: string[]
 ): (Block | KnownBlock)[] {
-  const blocks: (Block | KnownBlock)[] = [
-    ...buildStandupHeaderBlocks(date, timezone),
-  ];
+  const blocks: (Block | KnownBlock)[] = [...buildStandupHeaderBlocks(date, timezone)];
 
   entries.forEach((entry) => {
     blocks.push(...buildEntryBlock(entry));
@@ -149,15 +147,13 @@ export function buildSummaryBlocks(
   ];
 }
 
-export function buildConfigModal(
-  currentConfig?: {
-    channelId?: string;
-    timezone?: string;
-    hour?: number;
-    minute?: number;
-    summaryEnabled?: boolean;
-  }
-): {
+export function buildConfigModal(currentConfig?: {
+  channelId?: string;
+  timezone?: string;
+  hour?: number;
+  minute?: number;
+  summaryEnabled?: boolean;
+}): {
   type: string;
   title: { type: string; text: string };
   blocks: KnownBlock[];
@@ -348,4 +344,3 @@ export function buildStandupCollectionModal(): {
     ],
   };
 }
-

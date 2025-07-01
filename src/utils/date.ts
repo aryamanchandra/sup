@@ -54,9 +54,7 @@ export function getNextCronTime(cronExpression: string, timezone: string): Date 
     if (!parsed) return null;
 
     const now = new Date();
-    const todayInTz = new Date(
-      now.toLocaleString('en-US', { timeZone: timezone })
-    );
+    const todayInTz = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
 
     const nextRun = new Date(todayInTz);
     nextRun.setHours(parsed.hour, parsed.minute, 0, 0);
@@ -80,4 +78,3 @@ export function validateTimezone(tz: string): boolean {
     return false;
   }
 }
-

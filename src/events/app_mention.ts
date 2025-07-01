@@ -14,7 +14,7 @@ export async function handleAppMention({
         '*Commands:*\n' +
         '• `/standup init` - Set up stand-ups for your workspace\n' +
         '• `/standup today` - Run a stand-up now\n' +
-        '• `/standup summary` - Generate AI summary of today\'s stand-up\n' +
+        "• `/standup summary` - Generate AI summary of today's stand-up\n" +
         '• `/standup config` - Update configuration\n' +
         '• `/standup optin` - Opt in to daily stand-ups\n' +
         '• `/standup optout` - Opt out of daily stand-ups\n' +
@@ -27,4 +27,3 @@ export async function handleAppMention({
     logger.error({ error, event }, 'Failed to handle app mention');
   }
 }
-

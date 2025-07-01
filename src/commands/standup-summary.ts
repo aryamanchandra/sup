@@ -59,4 +59,3 @@ export function createStandupSummaryHandler(summarizer: SummarizerProvider | nul
     }
   };
 }
-

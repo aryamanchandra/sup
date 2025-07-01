@@ -8,10 +8,7 @@ async function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export async function retryWithBackoff<T>(
-  fn: () => Promise<T>,
-  retries = MAX_RETRIES
-): Promise<T> {
+export async function retryWithBackoff<T>(fn: () => Promise<T>, retries = MAX_RETRIES): Promise<T> {
   let lastError: Error | undefined;
 
   for (let i = 0; i < retries; i++) {
@@ -62,7 +59,7 @@ export async function postMessage(
   return retryWithBackoff(async () => {
     return await client.chat.postMessage({
       channel: channelId,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
       blocks: blocks as any,
       text: text || 'Stand-up update',
     });
@@ -80,7 +77,7 @@ export async function postThreadReply(
     return await client.chat.postMessage({
       channel: channelId,
       thread_ts: threadTs,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
       blocks: blocks as any,
       text: text || 'Thread reply',
     });
@@ -91,7 +88,7 @@ export async function openModal(client: WebClient, triggerId: string, view: unkn
   return retryWithBackoff(async () => {
     return await client.views.open({
       trigger_id: triggerId,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
       view: view as any,
     });
   });
@@ -118,4 +115,3 @@ export async function getWorkspaceMembers(client: WebClient): Promise<string[]> 
       .map((member) => member.id as string);
   });
 }
-

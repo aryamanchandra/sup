@@ -2,7 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { healthCheckDatabase } from '../db/prismaClient.js';
 import { logger } from '../utils/logger.js';
 
-export async function registerHealthRoutes(fastify: FastifyInstance): Promise<void> {
+export function registerHealthRoutes(fastify: FastifyInstance): void {
   fastify.get('/healthz', async (_request, reply) => {
     await reply.send({ status: 'ok', timestamp: new Date().toISOString() });
   });
@@ -37,4 +37,3 @@ export async function registerHealthRoutes(fastify: FastifyInstance): Promise<vo
     }
   });
 }
-

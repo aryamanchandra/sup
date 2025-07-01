@@ -63,8 +63,9 @@ export function createSetupConfigHandler(
 
       await ack();
 
-      const teamId = ('team' in body ? body.team?.id : undefined) || ('user' in body ? body.user.team_id : '');
-      
+      const teamId =
+        ('team' in body ? body.team?.id : undefined) || ('user' in body ? body.user.team_id : '');
+
       if (!teamId) {
         logger.error({ body }, 'Unable to determine teamId');
         return;
@@ -91,13 +92,14 @@ export function createSetupConfigHandler(
       });
 
       // Reschedule the job
-      await cancelWorkspaceJob(workspace.id);
+      cancelWorkspaceJob(workspace.id);
       await scheduleWorkspaceJob(workspace.id, client, summarizer, collectionWindowMin);
 
       // Send confirmation message
       await client.chat.postMessage({
         channel: channelId,
-        text: `✅ Stand-up bot configured successfully!\n\n` +
+        text:
+          `✅ Stand-up bot configured successfully!\n\n` +
           `Stand-ups will be collected at *${timeInput}* (${timezone}) and posted here.\n` +
           `AI Summary: ${summaryEnabled ? 'Enabled' : 'Disabled'}\n\n` +
           `Use \`/standup optin\` to participate and \`/standup status\` to view details.`,
@@ -118,4 +120,3 @@ export function createSetupConfigHandler(
     }
   };
 }
-

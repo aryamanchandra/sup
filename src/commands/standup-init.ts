@@ -20,4 +20,3 @@ export async function handleStandupInit({
     logger.error({ error, userId: command.user_id }, 'Failed to handle standup init');
   }
 }
-

@@ -92,4 +92,3 @@ export async function handleStandupSubmission({
     logger.error({ error, view }, 'Failed to handle standup submission');
   }
 }
-
