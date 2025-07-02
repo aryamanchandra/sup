@@ -50,3 +50,5 @@ prisma/dev.db-journal
 tmp/
 temp/
 
+*.md
+README.md
