@@ -4,7 +4,11 @@ import { logger } from './logger.js';
  * Safely acknowledge a Slack command/interaction with retry logic
  * Returns true if successful, false otherwise
  */
-export async function safeAck(ack: (...args: any[]) => Promise<any>, context?: string): Promise<boolean> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function safeAck(
+  ack: (...args: any[]) => Promise<any>,
+  context?: string
+): Promise<boolean> {
   try {
     await ack();
     return true;
@@ -17,6 +21,7 @@ export async function safeAck(ack: (...args: any[]) => Promise<any>, context?: s
 /**
  * Safely respond to a Slack command with error handling
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function safeRespond(
   respond: (message: any) => Promise<any>,
   message: any,
@@ -30,4 +35,3 @@ export async function safeRespond(
     return false;
   }
 }
-

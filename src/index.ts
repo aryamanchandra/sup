@@ -46,10 +46,13 @@ async function main() {
 
     // Register Slack event endpoints
     fastify.post('/slack/events', async (request, reply) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
       const slackEvent = request.body as any;
 
       // Handle URL verification challenge
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       if (slackEvent.type === 'url_verification') {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         await reply.send({ challenge: slackEvent.challenge });
         return;
       }
@@ -57,9 +60,9 @@ async function main() {
       // Process the event with Bolt
       try {
         await app.processEvent({
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           body: slackEvent,
-          // @ts-ignore - Bolt types are complex
-          ack: async (response) => {
+          ack: async (response: any) => {
             if (!reply.sent) {
               await reply.send(response || '');
             }

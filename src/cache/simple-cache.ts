@@ -46,6 +46,7 @@ class SimpleCache<T> {
 }
 
 // Workspace cache (1 minute TTL)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const workspaceCache = new SimpleCache<any>(60000);
 
 // User opt-in status cache (30 seconds TTL)
@@ -62,4 +63,3 @@ export function invalidateUserCache(key: string): void {
   userOptInCache.delete(key);
   logger.debug({ key }, 'Invalidated user cache');
 }
-

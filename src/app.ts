@@ -97,7 +97,7 @@ export function createApp(config: Config): App {
   app.view('standup_collection_modal', handleStandupSubmission);
 
   // Error handling
-  app.error(async (error) => {
+  app.error(async (error): Promise<void> => {
     logger.error({ error }, 'Unhandled error in Slack app');
   });
 

@@ -13,7 +13,6 @@ export async function handleStandupOptOut({
   if (!ackSuccess) return;
 
   try {
-
     const workspace = await prisma.workspace.findUnique({
       where: { teamId: command.team_id },
     });

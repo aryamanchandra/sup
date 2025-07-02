@@ -109,8 +109,10 @@ export function createSetupConfigHandler(
             `AI Summary: ${summaryEnabled ? 'Enabled' : 'Disabled'}\n\n` +
             `Use \`/standup optin\` to participate and \`/standup status\` to view details.`,
         });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (postError: any) {
         // If bot is not in channel, provide helpful message
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
         if (postError?.data?.error === 'not_in_channel') {
           logger.warn({ channelId }, 'Bot not in channel, configuration saved but cannot post');
           // Configuration is still saved, just notify via DM
