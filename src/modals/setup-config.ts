@@ -96,14 +96,38 @@ export function createSetupConfigHandler(
       await scheduleWorkspaceJob(workspace.id, client, summarizer, collectionWindowMin);
 
       // Send confirmation message
-      await client.chat.postMessage({
-        channel: channelId,
-        text:
-          `✅ Stand-up bot configured successfully!\n\n` +
-          `Stand-ups will be collected at *${timeInput}* (${timezone}) and posted here.\n` +
-          `AI Summary: ${summaryEnabled ? 'Enabled' : 'Disabled'}\n\n` +
-          `Use \`/standup optin\` to participate and \`/standup status\` to view details.`,
-      });
+      try {
+        await client.chat.postMessage({
+          channel: channelId,
+          text:
+            `✅ Stand-up bot configured successfully!\n\n` +
+            `Stand-ups will be collected at *${timeInput}* (${timezone}) and posted here.\n` +
+            `AI Summary: ${summaryEnabled ? 'Enabled' : 'Disabled'}\n\n` +
+            `Use \`/standup optin\` to participate and \`/standup status\` to view details.`,
+        });
+      } catch (postError: any) {
+        // If bot is not in channel, provide helpful message
+        if (postError?.data?.error === 'not_in_channel') {
+          logger.warn({ channelId }, 'Bot not in channel, configuration saved but cannot post');
+          // Configuration is still saved, just notify via DM
+          try {
+            await client.chat.postMessage({
+              channel: 'user' in body ? body.user.id : '',
+              text:
+                `✅ Stand-up bot configured successfully!\n\n` +
+                `⚠️ *Important:* Please invite me to <#${channelId}> by typing:\n` +
+                `\`/invite @Stand-up Bot\`\n\n` +
+                `Stand-ups will be collected at *${timeInput}* (${timezone}).\n` +
+                `AI Summary: ${summaryEnabled ? 'Enabled' : 'Disabled'}\n\n` +
+                `Use \`/standup optin\` to participate and \`/standup status\` to view details.`,
+            });
+          } catch (dmError) {
+            logger.error({ dmError }, 'Failed to send DM notification');
+          }
+        } else {
+          throw postError;
+        }
+      }
 
       logger.info(
         { workspaceId: workspace.id, teamId, channelId, cron, timezone },
