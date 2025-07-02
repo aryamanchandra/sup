@@ -1,5 +1,6 @@
 import { prisma } from '../db/prismaClient.js';
 import { logger } from '../utils/logger.js';
+import { userOptInCache } from '../cache/simple-cache.js';
 
 export async function setUserOptIn(
   workspaceId: string,
@@ -23,6 +24,10 @@ export async function setUserOptIn(
         optedIn,
       },
     });
+
+    // Invalidate cache
+    const cacheKey = `${workspaceId}:${userId}`;
+    userOptInCache.delete(cacheKey);
 
     logger.info({ workspaceId, userId, optedIn }, 'User opt-in status updated');
   } catch (error) {
@@ -51,6 +56,14 @@ export async function getOptedInUsers(workspaceId: string): Promise<string[]> {
 }
 
 export async function getUserOptInStatus(workspaceId: string, userId: string): Promise<boolean> {
+  const cacheKey = `${workspaceId}:${userId}`;
+
+  // Check cache first
+  const cached = userOptInCache.get(cacheKey);
+  if (cached !== null) {
+    return cached;
+  }
+
   try {
     const member = await prisma.member.findUnique({
       where: {
@@ -61,7 +74,12 @@ export async function getUserOptInStatus(workspaceId: string, userId: string): P
       },
     });
 
-    return member?.optedIn ?? false;
+    const result = member?.optedIn ?? false;
+
+    // Cache the result
+    userOptInCache.set(cacheKey, result);
+
+    return result;
   } catch (error) {
     logger.error({ error, workspaceId, userId }, 'Failed to get user opt-in status');
     return false;

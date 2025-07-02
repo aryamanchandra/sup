@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import Fastify from 'fastify';
+import formbody from '@fastify/formbody';
 import { loadConfig } from './config.js';
 import { logger } from './utils/logger.js';
 import { connectDatabase, disconnectDatabase } from './db/prismaClient.js';
@@ -28,22 +29,53 @@ async function main() {
     // Connect to database
     await connectDatabase();
 
-    // Create Fastify server for health checks
-    const fastify = Fastify({
-      logger: false, // We use pino directly
-    });
-
-    registerHealthRoutes(fastify);
-
-    await fastify.listen({ port: config.port, host: '0.0.0.0' });
-    logger.info({ port: config.port }, 'HTTP server listening');
-
     // Create Slack app
     const app = createApp(config);
 
-    // Start Socket Mode
-    await app.start();
-    logger.info('⚡️ Slack app is running in Socket Mode');
+    // Create Fastify server
+    const fastify = Fastify({
+      logger: false, // We use pino directly
+      bodyLimit: 10485760, // 10MB for Slack payloads
+    });
+
+    // Register form body parser for Slack's URL-encoded payloads
+    await fastify.register(formbody);
+
+    // Register health routes
+    registerHealthRoutes(fastify);
+
+    // Register Slack event endpoints
+    fastify.post('/slack/events', async (request, reply) => {
+      const slackEvent = request.body as any;
+
+      // Handle URL verification challenge
+      if (slackEvent.type === 'url_verification') {
+        await reply.send({ challenge: slackEvent.challenge });
+        return;
+      }
+
+      // Process the event with Bolt
+      try {
+        await app.processEvent({
+          body: slackEvent,
+          // @ts-ignore - Bolt types are complex
+          ack: async (response) => {
+            if (!reply.sent) {
+              await reply.send(response || '');
+            }
+          },
+        });
+      } catch (error) {
+        logger.error({ error }, 'Error processing Slack event');
+        if (!reply.sent) {
+          await reply.code(500).send({ error: 'Internal server error' });
+        }
+      }
+    });
+
+    await fastify.listen({ port: config.port, host: '0.0.0.0' });
+    logger.info({ port: config.port }, 'HTTP server listening');
+    logger.info('⚡️ Slack app is running in HTTP mode');
 
     // Initialize scheduler
     const client = new WebClient(config.slackBotToken);
@@ -58,7 +90,6 @@ async function main() {
 
       try {
         stopAllJobs();
-        await app.stop();
         await fastify.close();
         await disconnectDatabase();
         logger.info('Graceful shutdown completed');

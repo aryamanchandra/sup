@@ -48,10 +48,12 @@ oauth_config:
 
 settings:
   event_subscriptions:
+    request_url: https://YOUR-DOMAIN.com/slack/events
     bot_events:
       - app_mention
   interactivity:
     is_enabled: true
+    request_url: https://YOUR-DOMAIN.com/slack/events
   org_deploy_enabled: false
-  socket_mode_enabled: true
+  socket_mode_enabled: false
   token_rotation_enabled: false

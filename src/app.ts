@@ -27,10 +27,10 @@ import {
 export function createApp(config: Config): App {
   const app = new App({
     token: config.slackBotToken,
-    appToken: config.slackAppToken,
-    socketMode: true,
     signingSecret: config.slackSigningSecret,
     logLevel: config.logLevel === 'debug' ? LogLevel.DEBUG : LogLevel.INFO,
+    // HTTP mode (no Socket Mode)
+    processBeforeResponse: true,
   });
 
   const client = new WebClient(config.slackBotToken);

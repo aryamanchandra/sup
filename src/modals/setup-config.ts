@@ -5,6 +5,7 @@ import { prisma } from '../db/prismaClient.js';
 import { buildCron, validateTimezone } from '../utils/date.js';
 import { scheduleWorkspaceJob, cancelWorkspaceJob } from '../services/scheduler.js';
 import { SummarizerProvider } from '../services/summarizer/provider.js';
+import { invalidateWorkspaceCache } from '../cache/simple-cache.js';
 
 export function createSetupConfigHandler(
   client: WebClient,
@@ -90,6 +91,9 @@ export function createSetupConfigHandler(
           summaryEnabled,
         },
       });
+
+      // Invalidate cache
+      invalidateWorkspaceCache(teamId);
 
       // Reschedule the job
       cancelWorkspaceJob(workspace.id);

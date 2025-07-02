@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 const configSchema = z.object({
   slackBotToken: z.string().min(1, 'SLACK_BOT_TOKEN is required'),
-  slackAppToken: z.string().min(1, 'SLACK_APP_TOKEN is required'),
+  slackAppToken: z.string().optional(), // Optional for HTTP mode
   slackSigningSecret: z.string().min(1, 'SLACK_SIGNING_SECRET is required'),
   openAiApiKey: z.string().optional(),
   databaseUrl: z.string().default('file:./dev.db'),

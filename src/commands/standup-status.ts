@@ -4,6 +4,7 @@ import { prisma } from '../db/prismaClient.js';
 import { getNextCronTime } from '../utils/date.js';
 import { getUserOptInStatus } from '../services/users.js';
 import { safeAck } from '../utils/slack-helpers.js';
+import { workspaceCache } from '../cache/simple-cache.js';
 
 export async function handleStandupStatus({
   command,
@@ -14,20 +15,32 @@ export async function handleStandupStatus({
   if (!ackSuccess) return;
 
   try {
-    const workspace = await prisma.workspace.findUnique({
-      where: { teamId: command.team_id },
-    });
+    // Check cache first
+    let workspace = workspaceCache.get(command.team_id);
+
+    if (!workspace) {
+      workspace = await prisma.workspace.findUnique({
+        where: { teamId: command.team_id },
+      });
+
+      if (workspace) {
+        workspaceCache.set(command.team_id, workspace);
+      }
+    }
 
     if (!workspace) {
       await respond({
-        text: '❌ Workspace not configured. Please run `/standup init` first.',
+        text: '❌ Workspace not configured. Please run `/standup-init` first.',
         response_type: 'ephemeral',
       });
       return;
     }
 
-    const isOptedIn = await getUserOptInStatus(workspace.id, command.user_id);
-    const nextRun = getNextCronTime(workspace.cron, workspace.timezone);
+    // Parallel execution for speed
+    const [isOptedIn, nextRun] = await Promise.all([
+      getUserOptInStatus(workspace.id, command.user_id),
+      Promise.resolve(getNextCronTime(workspace.cron, workspace.timezone)),
+    ]);
 
     const nextRunText = nextRun
       ? new Intl.DateTimeFormat('en-US', {
