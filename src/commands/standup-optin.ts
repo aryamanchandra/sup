@@ -2,14 +2,17 @@ import { SlackCommandMiddlewareArgs, AllMiddlewareArgs } from '@slack/bolt';
 import { logger } from '../utils/logger.js';
 import { prisma } from '../db/prismaClient.js';
 import { setUserOptIn } from '../services/users.js';
+import { safeAck } from '../utils/slack-helpers.js';
 
 export async function handleStandupOptIn({
   command,
   ack,
   respond,
 }: SlackCommandMiddlewareArgs & AllMiddlewareArgs): Promise<void> {
+  const ackSuccess = await safeAck(ack, 'standup-optin');
+  if (!ackSuccess) return;
+
   try {
-    await ack();
 
     const workspace = await prisma.workspace.findUnique({
       where: { teamId: command.team_id },

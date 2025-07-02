@@ -3,15 +3,17 @@ import { logger } from '../utils/logger.js';
 import { prisma } from '../db/prismaClient.js';
 import { getNextCronTime } from '../utils/date.js';
 import { getUserOptInStatus } from '../services/users.js';
+import { safeAck } from '../utils/slack-helpers.js';
 
 export async function handleStandupStatus({
   command,
   ack,
   respond,
 }: SlackCommandMiddlewareArgs & AllMiddlewareArgs): Promise<void> {
-  try {
-    await ack();
+  const ackSuccess = await safeAck(ack, 'standup-status');
+  if (!ackSuccess) return;
 
+  try {
     const workspace = await prisma.workspace.findUnique({
       where: { teamId: command.team_id },
     });
@@ -49,9 +51,13 @@ export async function handleStandupStatus({
     logger.info({ userId: command.user_id, workspaceId: workspace.id }, 'Status requested');
   } catch (error) {
     logger.error({ error, userId: command.user_id }, 'Failed to handle standup status');
-    await respond({
-      text: '❌ Failed to fetch status. Please try again.',
-      response_type: 'ephemeral',
-    });
+    try {
+      await respond({
+        text: '❌ Failed to fetch status. Please try again.',
+        response_type: 'ephemeral',
+      });
+    } catch (respondError) {
+      logger.error({ error: respondError }, 'Failed to send error response');
+    }
   }
 }
