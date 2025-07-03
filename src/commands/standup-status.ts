@@ -3,7 +3,6 @@ import { logger } from '../utils/logger.js';
 import { prisma } from '../db/prismaClient.js';
 import { getNextCronTime } from '../utils/date.js';
 import { getUserOptInStatus } from '../services/users.js';
-import { safeAck } from '../utils/slack-helpers.js';
 import { workspaceCache } from '../cache/simple-cache.js';
 
 export async function handleStandupStatus({
@@ -11,8 +10,8 @@ export async function handleStandupStatus({
   ack,
   respond,
 }: SlackCommandMiddlewareArgs & AllMiddlewareArgs): Promise<void> {
-  const ackSuccess = await safeAck(ack, 'standup-status');
-  if (!ackSuccess) return;
+  // Acknowledge immediately to avoid timeout
+  await ack();
 
   try {
     // Check cache first
