@@ -74,17 +74,19 @@ export function buildEntryBlock(entry: StandupEntry): KnownBlock[] {
   return blocks;
 }
 
-export function buildMissedSection(missedUserIds: string[]): KnownBlock[] {
-  if (missedUserIds.length === 0) return [];
+export function buildMissedSection(
+  missedUsers: Array<{ userId: string; userName: string }>
+): KnownBlock[] {
+  if (missedUsers.length === 0) return [];
 
-  const userMentions = missedUserIds.map((id) => `<@${id}>`).join(', ');
+  const userNames = missedUsers.map((u) => u.userName).join(', ');
 
   return [
     {
       type: 'section',
       text: {
         type: 'mrkdwn',
-        text: `*Missed:* ${userMentions}`,
+        text: `*Missed:* ${userNames}`,
       },
     },
   ];
@@ -94,7 +96,7 @@ export function buildCompleteStandupBlocks(
   date: string,
   timezone: string,
   entries: StandupEntry[],
-  missedUserIds: string[]
+  missedUsers: Array<{ userId: string; userName: string }>
 ): (Block | KnownBlock)[] {
   const blocks: (Block | KnownBlock)[] = [...buildStandupHeaderBlocks(date, timezone)];
 
@@ -102,8 +104,8 @@ export function buildCompleteStandupBlocks(
     blocks.push(...buildEntryBlock(entry));
   });
 
-  if (missedUserIds.length > 0) {
-    blocks.push(...buildMissedSection(missedUserIds));
+  if (missedUsers.length > 0) {
+    blocks.push(...buildMissedSection(missedUsers));
   }
 
   return blocks;

@@ -61,12 +61,31 @@ export async function compileStandup(
     const submittedUserIds = new Set(entries.map((e) => e.userId));
     const missedUserIds = optedInUsers.filter((id) => !submittedUserIds.has(id));
 
+    // Get names for missed users
+    const missedUsers = await Promise.all(
+      missedUserIds.map(async (userId) => {
+        try {
+          const userInfo = await getUserInfo(client, userId);
+          return {
+            userId,
+            userName: userInfo?.real_name || userInfo?.name || 'Unknown',
+          };
+        } catch (error) {
+          logger.error({ error, userId }, 'Failed to get missed user info');
+          return {
+            userId,
+            userName: 'Unknown',
+          };
+        }
+      })
+    );
+
     // Post main message
     const blocks = buildCompleteStandupBlocks(
       standup.date,
       standup.workspace.timezone,
       entryData,
-      missedUserIds
+      missedUsers
     );
 
     const result = await postMessage(
