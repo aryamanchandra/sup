@@ -47,7 +47,20 @@ async function main() {
     // Register Slack event endpoints
     fastify.post('/slack/events', async (request, reply) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
-      const slackEvent = request.body as any;
+      let slackEvent = request.body as any;
+
+      // Handle URL-encoded payloads (interactions/commands)
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      if (slackEvent.payload) {
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+          slackEvent = JSON.parse(slackEvent.payload);
+        } catch (error) {
+          logger.error({ error }, 'Failed to parse payload');
+          await reply.code(400).send({ error: 'Invalid payload' });
+          return;
+        }
+      }
 
       // Handle URL verification challenge
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
