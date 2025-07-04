@@ -41,6 +41,12 @@ export function createStandupTodayHandler(
         workspace.timezone
       );
 
+      // Reset compiledAt to allow recompilation if running multiple times same day
+      await prisma.standup.update({
+        where: { id: standupId },
+        data: { compiledAt: null },
+      });
+
       await collectFromUsers(client, workspace.id, standupId);
 
       // Schedule compilation after a short delay
