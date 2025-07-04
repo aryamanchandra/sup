@@ -111,7 +111,7 @@ export async function compileStandup(
     // Generate summary if enabled
     if (summarizer && standup.workspace.summaryEnabled && entries.length > 0) {
       try {
-        await generateAndPostSummary(client, standup.channelId, messageTs, entries, summarizer);
+        await generateAndPostSummary(client, standup.channelId, messageTs, entryData, summarizer);
       } catch (error) {
         logger.error({ error, standupId }, 'Failed to generate summary');
       }
@@ -128,7 +128,13 @@ export async function generateAndPostSummary(
   client: WebClient,
   channelId: string,
   threadTs: string,
-  entries: Array<{ userId: string; yesterday: string; today: string; blockers: string | null }>,
+  entries: Array<{
+    userId: string;
+    userName: string;
+    yesterday: string;
+    today: string;
+    blockers?: string;
+  }>,
   summarizer: SummarizerProvider
 ): Promise<void> {
   try {
@@ -136,7 +142,7 @@ export async function generateAndPostSummary(
 
     const summary = await summarizer.generateSummary(
       entries.map((e) => ({
-        userId: e.userId,
+        userId: e.userName, // Use userName instead of userId for the summary
         yesterday: e.yesterday,
         today: e.today,
         blockers: e.blockers || undefined,
@@ -180,7 +186,32 @@ export async function regenerateSummary(
       throw new Error('No entries found for summary');
     }
 
-    await generateAndPostSummary(client, standup.channelId, standup.messageTs, entries, summarizer);
+    // Get user names for entries
+    const entryData = await Promise.all(
+      entries.map(async (entry) => {
+        try {
+          const userInfo = await getUserInfo(client, entry.userId);
+          return {
+            userId: entry.userId,
+            userName: userInfo?.real_name || userInfo?.name || 'Unknown',
+            yesterday: entry.yesterday,
+            today: entry.today,
+            blockers: entry.blockers || undefined,
+          };
+        } catch (error) {
+          logger.error({ error, userId: entry.userId }, 'Failed to get user info');
+          return {
+            userId: entry.userId,
+            userName: 'Unknown',
+            yesterday: entry.yesterday,
+            today: entry.today,
+            blockers: entry.blockers || undefined,
+          };
+        }
+      })
+    );
+
+    await generateAndPostSummary(client, standup.channelId, standup.messageTs, entryData, summarizer);
   } catch (error) {
     logger.error({ error, workspaceId, date }, 'Failed to regenerate summary');
     throw error;
