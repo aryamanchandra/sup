@@ -1,4 +1,4 @@
-# Slack Stand-up Bot
+# SUP (Stand UP) Slack Bot
 
 A Slack bot that automates daily stand-ups for distributed teams. It collects updates asynchronously via DMs, compiles them into organized summaries, and optionally generates AI insights using OpenAI.
 
