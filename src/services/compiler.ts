@@ -211,7 +211,13 @@ export async function regenerateSummary(
       })
     );
 
-    await generateAndPostSummary(client, standup.channelId, standup.messageTs, entryData, summarizer);
+    await generateAndPostSummary(
+      client,
+      standup.channelId,
+      standup.messageTs,
+      entryData,
+      summarizer
+    );
   } catch (error) {
     logger.error({ error, workspaceId, date }, 'Failed to regenerate summary');
     throw error;

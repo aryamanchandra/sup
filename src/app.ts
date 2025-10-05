@@ -97,7 +97,8 @@ export function createApp(config: Config): App {
   app.view('standup_collection_modal', handleStandupSubmission);
 
   // Error handling
-  app.error(async (error): Promise<void> => {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  app.error(async (error) => {
     logger.error({ error }, 'Unhandled error in Slack app');
   });
 

@@ -54,7 +54,7 @@ async function main() {
       if (slackEvent.payload) {
         try {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-          slackEvent = JSON.parse(slackEvent.payload);
+          slackEvent = JSON.parse(slackEvent.payload as string);
         } catch (error) {
           logger.error({ error }, 'Failed to parse payload');
           await reply.code(400).send({ error: 'Invalid payload' });
@@ -75,7 +75,8 @@ async function main() {
         await app.processEvent({
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           body: slackEvent,
-          ack: async (response: any) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ack: async (response?: any) => {
             if (!reply.sent) {
               await reply.send(response || '');
             }
