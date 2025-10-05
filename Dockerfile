@@ -32,13 +32,17 @@ RUN npm install -g pnpm@8.15.4
 # Copy package files
 COPY package.json pnpm-lock.yaml* ./
 
+# Copy Prisma schema
+COPY --from=builder /app/prisma ./prisma
+
 # Install production dependencies only
 RUN pnpm install --prod --frozen-lockfile
 
-# Copy built application and Prisma
+# Generate Prisma client
+RUN pnpm prisma generate
+
+# Copy built application
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/prisma ./prisma
 
 # Create a non-root user
 RUN addgroup -g 1001 -S nodejs && \
